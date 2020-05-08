@@ -36,7 +36,7 @@
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
-    "ava": "^3.1.0",
+    "ava": "^3.8.2",
     "firebase-admin": "^8.9.2",
     "firebase-functions": "^3.3.0",
     "firebase-functions-test": "^0.1.7",
