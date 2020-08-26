@@ -1,6 +1,6 @@
 {
   "name": "@gitliveapp/integrify",
-  "version": "4.0.4",
+  "version": "4.0.6",
   "description": "Enforce referential integrity in Firestore using Cloud Functions",
   "keywords": [
     "firebase",
