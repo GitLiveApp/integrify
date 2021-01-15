@@ -50,7 +50,7 @@ export function integrifyMaintainCount(
   ) {
     let targetId = snap.get(rule.source.foreignKey);
     // Check if there is formatting that needs to happen to the targetId
-    if (rule.hooks.pre) {
+    if (rule?.hooks?.pre) {
       targetId = await rule.hooks.pre(targetId);
     }
     const targetRef = db.collection(rule.target.collection).doc(targetId);
