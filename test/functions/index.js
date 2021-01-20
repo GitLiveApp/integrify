@@ -290,3 +290,18 @@ module.exports.maintainFavoritesCount = integrify({
     attribute: 'favoritesCount',
   },
 });
+
+module.exports.maintainFavoritesCountWithPreHook = integrify({
+  rule: 'MAINTAIN_COUNT',
+  source: {
+    collection: 'favorites',
+    foreignKey: 'articleId',
+  },
+  target: {
+    collection: 'articles',
+    attribute: 'favoritesCount',
+  },
+  hooks: {
+    pre: key => `updated_${key}`,
+  },
+});

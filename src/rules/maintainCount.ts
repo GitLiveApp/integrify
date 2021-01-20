@@ -11,7 +11,7 @@ export interface MaintainCountRule extends Rule {
     attribute: string;
   };
   hooks?: {
-    pre?: ForeignKeyFunction;
+    pre: ForeignKeyFunction;
   };
 }
 
