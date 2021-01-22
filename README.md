@@ -137,11 +137,20 @@ module.exports.maintainFavoritesCount = integrify({
   rule: 'MAINTAIN_COUNT',
   source: {
     collection: 'favorites',
-    foreignKey: 'articleId',
   },
   target: {
-    collection: 'articles',
+    collection: 'articles/$source.articleId', // NOTE: This collection needs to reference a document
+    // OR
+    collection: 'articles/$source.fieldValue/private/details', // Can reference a field value (requires source), will throw error if it doesn't exist
     attribute: 'favoritesCount',
+
+    // Optional:
+    hooks: {
+        pre: (foreignKey) => {
+            // Code to execute before using the foreignKey in the target
+            // This allows the foreignKey to be modified before using it in the path
+        },
+    },
   },
 });
 ```
