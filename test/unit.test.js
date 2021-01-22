@@ -842,9 +842,7 @@ async function testMaintainCount(sut, t) {
   await db
     .collection('articles')
     .doc(articleId)
-    .set({
-      favoritesCount: 0,
-    });
+    .set({ favoritesCount: 0 });
 
   // Favorite the article a few times
   const NUM_TIMES_TO_FAVORITE = 5;
@@ -911,9 +909,7 @@ async function testMaintainCountPreHook(sut, t, name) {
   await db
     .collection('articles')
     .doc(updatedArticleId)
-    .set({
-      favoritesCount: 0,
-    });
+    .set({ favoritesCount: 0 });
 
   // Favorite the article a few times
   const NUM_TIMES_TO_FAVORITE = 5;
@@ -980,9 +976,7 @@ async function testMaintainCountDeepPreHook(sut, t, name) {
     .doc(updatedArticleId)
     .collection('private')
     .doc('counts')
-    .set({
-      favoritesCount: 0,
-    });
+    .set({ favoritesCount: 0 });
 
   // Favorite the article a few times
   const NUM_TIMES_TO_FAVORITE = 5;
@@ -1035,74 +1029,9 @@ async function testMaintainCountDeepPreHook(sut, t, name) {
   await assertQuerySizeEventually(
     db
       .collection('articles')
-      .where(admin.firestore.FieldPath.documentId(), '==', updatedArticleId),
-    0
-  );
-
-  t.pass();
-}
-
-async function testMaintainCountPreHook(sut, t, name) {
-  if (name !== 'rules-in-situ') {
-    console.log("Can't test the maintain pre-hook in functions from file");
-    t.pass();
-    return;
-  }
-
-  // Create an article to be favorited
-  const articleId = makeid();
-  const updatedArticleId = `updated_${articleId}`;
-  await db
-    .collection('articles')
-    .doc(updatedArticleId)
-    .set({
-      favoritesCount: 0,
-    });
-
-  // Favorite the article a few times
-  const NUM_TIMES_TO_FAVORITE = 5;
-  const wrappedUpdater = fft.wrap(sut.maintainFavoritesCountWithPreHook);
-  const promises = [];
-  const emptySnap = fft.firestore.makeDocumentSnapshot({});
-  const snap = fft.firestore.makeDocumentSnapshot(
-    { articleId },
-    `favorites/${makeid()}`
-  );
-  for (let i = 1; i <= NUM_TIMES_TO_FAVORITE; ++i) {
-    promises.push(wrappedUpdater(fft.makeChange(emptySnap, snap)));
-    await sleep(500);
-  }
-
-  // Unfavorite the article a few times
-  const NUM_TIMES_TO_UNFAVORITE = 3;
-  for (let i = 1; i <= NUM_TIMES_TO_UNFAVORITE; ++i) {
-    promises.push(wrappedUpdater(fft.makeChange(snap, emptySnap)));
-    await sleep(500);
-  }
-  await Promise.all(promises);
-
-  // Assert article has expected number of favoritesCount
-  await assertDocumentValueEventually(
-    db.collection('articles').doc(updatedArticleId),
-    'favoritesCount',
-    NUM_TIMES_TO_FAVORITE - NUM_TIMES_TO_UNFAVORITE
-  );
-
-  // Ensure warning is printed if triggered by an actual update
-  await wrappedUpdater(fft.makeChange(snap, snap));
-
-  // Delete article and ensure favoritesCount is not updated on decrement or
-  // increment
-  await db
-    .collection('articles')
-    .doc(updatedArticleId)
-    .delete();
-  await wrappedUpdater(fft.makeChange(snap, emptySnap));
-  await wrappedUpdater(fft.makeChange(emptySnap, snap));
-  await assertQuerySizeEventually(
-    db
-      .collection('articles')
-      .where(admin.firestore.FieldPath.documentId(), '==', updatedArticleId),
+      .doc(updatedArticleId)
+      .collection('private')
+      .doc('counts'),
     0
   );
 

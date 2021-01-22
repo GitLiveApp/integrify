@@ -34,16 +34,16 @@ module.exports.replicateMasterToDetail = integrify({
   ],
   hooks: {
     pre: (change, context) => {
-        setState({
-            change,
-            context
-        });
+      setState({
+        change,
+        context,
+      });
     },
     post: (change, context) => {
-        setState({
-            change,
-            context
-        });
+      setState({
+        change,
+        context,
+      });
     },
   },
 });
@@ -66,9 +66,9 @@ module.exports.replicateMasterDeleteWhenEmpty = integrify({
   hooks: {
     pre: (change, context) => {
       setState({
-          change,
-          context
-       });
+        change,
+        context,
+      });
     },
   },
 });
