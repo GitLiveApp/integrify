@@ -1,17 +1,22 @@
 import * as admin from 'firebase-admin';
-import { Config, ForeignKeyFunction, Rule } from '../common';
+import { EventContext } from 'firebase-functions';
+import {
+  Config,
+  FormatKeyFunction,
+  replaceReferencesWith,
+  Rule,
+} from '../common';
 
 export interface MaintainCountRule extends Rule {
   source: {
     collection: string;
-    foreignKey: string;
   };
   target: {
     collection: string;
     attribute: string;
   };
   hooks?: {
-    pre: ForeignKeyFunction;
+    pre: FormatKeyFunction;
   };
 }
 
@@ -28,15 +33,15 @@ export function integrifyMaintainCount(
 
   return functions.firestore
     .document(`${rule.source.collection}/{docId}`)
-    .onWrite(async change => {
+    .onWrite(async (change, context) => {
       // Determine if document has been added or deleted
       const documentWasAdded = change.after.exists && !change.before.exists;
       const documentWasDeleted = !change.after.exists && change.before.exists;
 
       if (documentWasAdded) {
-        await updateCount(change.after, Delta.Increment);
+        await updateCount(context, change.after, Delta.Increment);
       } else if (documentWasDeleted) {
-        await updateCount(change.before, Delta.Decrement);
+        await updateCount(context, change.before, Delta.Decrement);
       } else {
         console.log(
           `integrify: WARNING: Ignoring update trigger for MAINTAIN_COUNT on collection: [${rule.source.collection}]`
@@ -45,31 +50,36 @@ export function integrifyMaintainCount(
     });
 
   async function updateCount(
+    context: EventContext,
     snap: FirebaseFirestore.DocumentSnapshot,
     delta: Delta
   ) {
-    let targetId = snap.get(rule.source.foreignKey);
-    // Check if there is formatting that needs to happen to the targetId
-    if (rule?.hooks?.pre) {
-      targetId = await rule.hooks.pre(targetId);
-    }
-    const targetRef = db.collection(rule.target.collection).doc(targetId);
+    // Replace the context.params and snapshot fields in the target collection
+    const fieldSwap = replaceReferencesWith(
+      { source: snap.data() || {}, ...context.params },
+      rule.target.collection,
+      rule?.hooks?.pre
+    );
+
+    // For maintain it must reference a doc
+    const targetRef = db.doc(fieldSwap.targetCollection);
     const targetSnap = await targetRef.get();
 
     // No-op if target does not exist
     if (!targetSnap.exists) {
       console.log(
-        `integrify: WARNING: Target document does not exist in [${rule.target.collection}], id [${targetId}]`
+        `integrify: WARNING: Target document does not exist in [${fieldSwap.targetCollection}]`
       );
       return;
     }
 
-    const update = {};
-    update[rule.target.attribute] = admin.firestore.FieldValue.increment(delta);
+    const update = {
+      [rule.target.attribute]: admin.firestore.FieldValue.increment(delta),
+    };
     console.log(
       `integrify: Applying ${toString(delta).toLowerCase()} to [${
         rule.target.collection
-      }].[${rule.target.attribute}], id: [${targetId}], update: `,
+      }].[${rule.target.attribute}], update: `,
       update
     );
     await targetRef.update(update);

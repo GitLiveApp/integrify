@@ -34,7 +34,16 @@ module.exports.replicateMasterToDetail = integrify({
   ],
   hooks: {
     pre: (change, context) => {
-      setState({ change, context });
+        setState({
+            change,
+            context
+        });
+    },
+    post: (change, context) => {
+        setState({
+            change,
+            context
+        });
     },
   },
 });
@@ -57,9 +66,9 @@ module.exports.replicateMasterDeleteWhenEmpty = integrify({
   hooks: {
     pre: (change, context) => {
       setState({
-        change,
-        context,
-      });
+          change,
+          context
+       });
     },
   },
 });
@@ -283,10 +292,9 @@ module.exports.maintainFavoritesCount = integrify({
   rule: 'MAINTAIN_COUNT',
   source: {
     collection: 'favorites',
-    foreignKey: 'articleId',
   },
   target: {
-    collection: 'articles',
+    collection: 'articles/$source.articleId',
     attribute: 'favoritesCount',
   },
 });
@@ -295,10 +303,9 @@ module.exports.maintainFavoritesCountWithPreHook = integrify({
   rule: 'MAINTAIN_COUNT',
   source: {
     collection: 'favorites',
-    foreignKey: 'articleId',
   },
   target: {
-    collection: 'articles',
+    collection: 'articles/$source.articleId',
     attribute: 'favoritesCount',
   },
   hooks: {
@@ -313,8 +320,8 @@ module.exports.maintainFavoritesCountWithDeepPreHook = integrify({
     foreignKey: 'articleId',
   },
   target: {
-    collection: 'articles/{articleId}/private/counts',
-    attribute: 'favorites',
+    collection: 'articles/$source.articleId/private/counts',
+    attribute: 'favoritesCount',
   },
   hooks: {
     pre: key => `updated_${key}`,
