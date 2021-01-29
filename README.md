@@ -61,16 +61,16 @@ integrify({ config: { functions, db } });
 
 // Automatically replicate attributes from source to target
 module.exports.onCustomerUpdated = integrify({
-	rule: 'REPLICATE_ATTRIBUTES',
-	source: {
+  rule: 'REPLICATE_ATTRIBUTES',
+  source: {
     collection: 'customers', // <-- This will append {masterId}
-	    // OR
-		collection: 'customers/{customerId}', // <-- Can be any string as in Firebase
-	},
-	targets: [
+    // OR
+    collection: 'customers/{customerId}', // <-- Can be any string as in Firebase
+  },
+  targets: [
     {
-			collection: 'orders',
-			foreignKey: 'customerId',
+      collection: 'orders',
+      foreignKey: 'customerId',
       attributeMapping: {
         firstName: 'customerFirstName', // If an field is missing after the update, the field will be deleted
         lastName: 'customerLastName',
@@ -86,10 +86,10 @@ module.exports.onCustomerUpdated = integrify({
       // Optional:
       isCollectionGroup: true, // Replicate into collection group, see more below
     },
-	],
+  ],
 
 	// Optional:
-	hooks: {
+  hooks: {
     pre: (change, context) => {
       // Code to execute before replicating attributes
       // See: https://firebase.google.com/docs/functions/firestore-events
@@ -98,7 +98,7 @@ module.exports.onCustomerUpdated = integrify({
       // Code to execute after replicating attributes
       // See: https://firebase.google.com/docs/functions/firestore-events
     },
-	},
+  },
 });
 ```
 
@@ -117,13 +117,13 @@ integrify({ config: { functions, db } });
 
 // Automatically delete stale references
 module.exports.onCustomerDeleted = integrify({
-	rule: 'DELETE_REFERENCES',
-	source: {
+  rule: 'DELETE_REFERENCES',
+  source: {
     collection: 'customers', // <-- This will append {masterId}
     // OR
     collection: 'customers/{cusomterId}', // <-- Can be any string as in Firebase
-	},
-	targets: [
+  },
+  targets: [
     {
       collection: 'orders',
       foreignKey: 'customerId', // Optional: Delete document with matching foreign key
@@ -137,10 +137,10 @@ module.exports.onCustomerDeleted = integrify({
       collection: 'orders/$source.fieldValue/delivered', // Can reference a field value (requires source), will throw error if it doesn't exist
       foreignKey: 'customerId',
     },
-	],
+  ],
 
-	// Optional:
-	hooks: {
+  // Optional:
+  hooks: {
     pre: (snap, context) => {
       // Code to execute before deleting references
       // See: https://firebase.google.com/docs/functions/firestore-events
@@ -149,7 +149,7 @@ module.exports.onCustomerDeleted = integrify({
       // Code to execute after deleting references
       // See: https://firebase.google.com/docs/functions/firestore-events
     },
-	},
+  },
 });
 ```
 
@@ -168,11 +168,11 @@ integrify({ config: { functions, db } });
 
 // Automatically maintain count
 module.exports.onMaintainCustomerOrderCount = integrify({
-	rule: 'MAINTAIN_COUNT',
-	source: {
+  rule: 'MAINTAIN_COUNT',
+  source: {
     collection: 'orders',
-	},
-	target: {
+  },
+  target: {
     collection: 'customers/$source.cusomerId', // NOTE: This collection needs to reference a document
     // OR
     collection: 'customers/$source.cusomerId/orders/initial', // Can reference a field value (requires source), will throw error if it doesn't exist
@@ -185,7 +185,7 @@ module.exports.onMaintainCustomerOrderCount = integrify({
         // This allows the foreignKey to be modified before using it in the path
       },
     },
-	},
+  },
 });
 ```
 
