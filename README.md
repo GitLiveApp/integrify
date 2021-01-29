@@ -40,7 +40,7 @@ For the example above, the Firestore structure would look as follows
 
 If the customer updated their name then the orders will be. You will need a function (`onUpdate`) that is trigger every time there is an update to the customer table to update the order table's `Customer Name`. Similarly, if the customer is deleted (`onDelete`) then the orders that belong to the customer should be deleted too. Every time an order is added or deleted in the orders collection, it should update the `# Orders` for the customer by incrementing or decrementing the field.
 
-Integrify allow you to create the functions in a simpler and easy-to-read way. You provided the `source` that the function must keep a watch on and the `targets` that need to be updated whenever the event specified occurs on the source collection.
+Integrify allows you to create the functions in a simpler and easy-to-read way. You provided the `source` that the function must keep a watch on and the `targets` that need to be updated whenever the event specified occurs on the source collection.
 
 The `hooks` allow you to perform any additional logic before (`pre`) or after (`post`) the update to the target has been executed.
 
