@@ -61,43 +61,43 @@ integrify({ config: { functions, db } });
 
 // Automatically replicate attributes from source to target
 module.exports.onCustomerUpdated = integrify({
-	 rule: 'REPLICATE_ATTRIBUTES',
-	 source: {
-	    collection: 'customers', // <-- This will append {masterId}
+	rule: 'REPLICATE_ATTRIBUTES',
+	source: {
+    collection: 'customers', // <-- This will append {masterId}
 	    // OR
 		collection: 'customers/{customerId}', // <-- Can be any string as in Firebase
-	 },
-	 targets: [
-	    {
+	},
+	targets: [
+    {
 			collection: 'orders',
 			foreignKey: 'customerId',
-		    attributeMapping: {
-		        firstName: 'customerFirstName', // If an field is missing after the update, the field will be deleted
-		        lastName: 'customerLastName',
-		     },
-	    },
-	    {
-		    collection: 'deliveryAddress',
-		    foreignKey: 'customerId',
-		    attributeMapping: {
-		        firstName: 'customerFirstName',
-		        lastName: 'customerLastName',
-		    },
-		    // Optional:
-		    isCollectionGroup: true, // Replicate into collection group, see more below
-	    },
+      attributeMapping: {
+        firstName: 'customerFirstName', // If an field is missing after the update, the field will be deleted
+        lastName: 'customerLastName',
+      },
+    },
+    {
+      collection: 'deliveryAddress',
+      foreignKey: 'customerId',
+      attributeMapping: {
+        firstName: 'customerFirstName',
+        lastName: 'customerLastName',
+      },
+      // Optional:
+      isCollectionGroup: true, // Replicate into collection group, see more below
+    },
 	],
 
 	// Optional:
 	hooks: {
-		  pre: (change, context) => {
-		      // Code to execute before replicating attributes
-		      // See: https://firebase.google.com/docs/functions/firestore-events
-		  },
-		  post: (change, context) => {
-		      // Code to execute after replicating attributes
-		      // See: https://firebase.google.com/docs/functions/firestore-events
-		  },
+    pre: (change, context) => {
+      // Code to execute before replicating attributes
+      // See: https://firebase.google.com/docs/functions/firestore-events
+    },
+    post: (change, context) => {
+      // Code to execute after replicating attributes
+      // See: https://firebase.google.com/docs/functions/firestore-events
+    },
 	},
 });
 ```
@@ -119,36 +119,36 @@ integrify({ config: { functions, db } });
 module.exports.onCustomerDeleted = integrify({
 	rule: 'DELETE_REFERENCES',
 	source: {
-	    collection: 'customers', // <-- This will append {masterId}
-	    // OR
-	    collection: 'customers/{cusomterId}', // <-- Can be any string as in Firebase
+    collection: 'customers', // <-- This will append {masterId}
+    // OR
+    collection: 'customers/{cusomterId}', // <-- Can be any string as in Firebase
 	},
 	targets: [
-	    {
-		      collection: 'orders',
-		      foreignKey: 'customerId', // Optional: Delete document with matching foreign key
-		      deleteAll: false, // Optional: Delete all from collection
-		      // EITHER 'foreignKey' OR 'deleteAll' MUST BE PROVIDED
-		      isCollectionGroup: true,  // Optional: Delete from collection group, see more below
-	    },
-	    {
-		      collection: 'orders/$master/delivered', // Can reference source ID, will throw error if it doesn't exist
-		      // OR
-		      collection: 'orders/$source.fieldValue/delivered', // Can reference a field value (requires source), will throw error if it doesn't exist
-		      foreignKey: 'customerId',
-	    },
+    {
+      collection: 'orders',
+      foreignKey: 'customerId', // Optional: Delete document with matching foreign key
+      deleteAll: false, // Optional: Delete all from collection
+      // EITHER 'foreignKey' OR 'deleteAll' MUST BE PROVIDED
+      isCollectionGroup: true,  // Optional: Delete from collection group, see more below
+    },
+    {
+      collection: 'orders/$master/delivered', // Can reference source ID, will throw error if it doesn't exist
+      // OR
+      collection: 'orders/$source.fieldValue/delivered', // Can reference a field value (requires source), will throw error if it doesn't exist
+      foreignKey: 'customerId',
+    },
 	],
 
 	// Optional:
 	hooks: {
-	    pre: (snap, context) => {
-		      // Code to execute before deleting references
-		      // See: https://firebase.google.com/docs/functions/firestore-events
-	    },
-	    post: (snap, context) => {
-		      // Code to execute after deleting references
-		      // See: https://firebase.google.com/docs/functions/firestore-events
-	    },
+    pre: (snap, context) => {
+      // Code to execute before deleting references
+      // See: https://firebase.google.com/docs/functions/firestore-events
+    },
+    post: (snap, context) => {
+      // Code to execute after deleting references
+      // See: https://firebase.google.com/docs/functions/firestore-events
+    },
 	},
 });
 ```
@@ -170,21 +170,21 @@ integrify({ config: { functions, db } });
 module.exports.onMaintainCustomerOrderCount = integrify({
 	rule: 'MAINTAIN_COUNT',
 	source: {
-	    collection: 'orders',
+    collection: 'orders',
 	},
 	target: {
-	    collection: 'customers/$source.cusomerId', // NOTE: This collection needs to reference a document
-	    // OR
-	    collection: 'customers/$source.cusomerId/orders/initial', // Can reference a field value (requires source), will throw error if it doesn't exist
-	    attribute: 'orderCount',
+    collection: 'customers/$source.cusomerId', // NOTE: This collection needs to reference a document
+    // OR
+    collection: 'customers/$source.cusomerId/orders/initial', // Can reference a field value (requires source), will throw error if it doesn't exist
+    attribute: 'orderCount',
 
-	    // Optional:
-	    hooks: {
-	        pre: (foreignKey) => {
-	            // Code to execute before using the foreignKey in the target
-	            // This allows the foreignKey to be modified before using it in the path
-	        },
-	    },
+    // Optional:
+    hooks: {
+      pre: (foreignKey) => {
+        // Code to execute before using the foreignKey in the target
+        // This allows the foreignKey to be modified before using it in the path
+      },
+    },
 	},
 });
 ```
