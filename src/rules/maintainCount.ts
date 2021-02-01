@@ -3,6 +3,7 @@ import { EventContext } from 'firebase-functions';
 import {
   Config,
   FormatKeyFunction,
+  getPrimaryKey,
   replaceReferencesWith,
   Rule,
 } from '../common';
@@ -31,8 +32,13 @@ export function integrifyMaintainCount(
   const functions = config.config.functions;
   const db = config.config.db;
 
+  const { hasPrimaryKey, primaryKey } = getPrimaryKey(rule.source.collection);
+  if (!hasPrimaryKey) {
+    rule.source.collection = `${rule.source.collection}/{${primaryKey}}`;
+  }
+
   return functions.firestore
-    .document(`${rule.source.collection}/{docId}`)
+    .document(rule.source.collection)
     .onWrite(async (change, context) => {
       // Determine if document has been added or deleted
       const documentWasAdded = change.after.exists && !change.before.exists;
