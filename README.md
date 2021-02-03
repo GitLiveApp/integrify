@@ -20,9 +20,9 @@ Relational databases have the benefit of using foreign keys (FK) to enforce link
 | 764          | 1213            | £15.32 | First name | Last name |
 
 *Delivery Attempts Table*
-| deliveryId (PK) | orderId (FK) | customerId | cFirstName | completed |
-|-----------------|--------------|------------|------------|-----------|
-| 623             | 764          | 1213       | First name | true      |
+| deliveryId (PK) | orderId (FK) | customerId (FK) | cFirstName | completed |
+|-----------------|--------------|-----------------|------------|-----------|
+| 623             | 764          | 1213            | First name | true      |
 ```
 
 A `JOIN` query can be used to get the data between the two tables or a `DELETE CASCADE` can be used to delete the rows in another table. This is not possible in Firestore, the concept of primary and foreign keys don't exist as it is a collection of documents.
