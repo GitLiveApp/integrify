@@ -56,10 +56,11 @@ For the example above, the Firestore structure would look as follows
     /deliveryAttempts
       /623
         customerId: 1213
+        cFirstName: 'First name'
         completed: true
 ```
 
-If the customer updated their first name in the customers' collection then the orders will be out of sync. You will need a function (`onUpdate`) that is triggered every time there is an update to the customer table to update the order table's `cFirstName`. Similarly, if the customer is deleted (`onDelete`) then the orders that belong to the customer should be deleted too. Every time an order is added or deleted in the orders collection, it should update the `nOrders` for the customer by incrementing or decrementing the field.
+If the customer updates their first name in the `customers` collection then the `orders` and `deliveryAttempts` will be out of sync. You will need a function (`onUpdate`) that is triggered every time there is an update to a `customers` document to update the `orders` and `deliveryAttempts` documents `cFirstName` field. Similarly, if a `customers` document is deleted (`onDelete`) then the `orders` documents that belong to the customer should be deleted too. Every time an order is added or deleted in the `orders` collection, it should update the `nOrders` for the customer by incrementing or decrementing the field.
 
 Integrify allows you to create the functions in a simpler and easy-to-read way. You provided the `source` that the function must keep a watch on and the `targets` that need to be updated whenever the event specified occurs on the source collection.
 
@@ -100,7 +101,7 @@ module.exports.onCustomerUpdated = integrify({
       },
     },
 
-    // Can have multiple targets, for example if there was a sub-collection of delivery address for each customer
+    // Can have multiple targets
     {
       collection: 'deliveryAttempts',
       foreignKey: 'customerId',
