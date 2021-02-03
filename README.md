@@ -10,14 +10,19 @@ Relational databases have the benefit of using foreign keys (FK) to enforce link
 
 ```
 *Customers Table*
-| Customer ID (PK) | Name          | Email             |
-|------------------|---------------|-------------------|
-| 1213             | Customer Name | customer@email... |
+| customerId (PK) | firstName  | lastName  | email             | nOrders |
+|-----------------|------------|-----------|-------------------|---------|
+| 1213            | First Name | Last name | customer@email... | 14      |
 
 *Orders Table*
-| Order ID (PK) | Customer ID (FK) | Amount |
-|---------------|------------------|--------|
-| 764           | 1213             | £15.32 |
+| orderId (PK) | customerId (FK) | amount | cFirstName | cLastName |
+|--------------|-----------------|--------|------------|-----------|
+| 764          | 1213            | £15.32 | First name | Last name |
+
+*Delivery Attempts Table*
+| deliveryId (PK) | orderId (FK) | customerId | cFirstName | completed |
+|-----------------|--------------|------------|------------|-----------|
+| 623             | 764          | 1213       | First name | true      |
 ```
 
 A `JOIN` query can be used to get the data between the two tables or a `DELETE CASCADE` can be used to delete the rows in another table. This is not possible in Firestore, the concept of primary and foreign keys don't exist as it is a collection of documents.
@@ -29,31 +34,32 @@ For the example above, the Firestore structure would look as follows
 ```
 *Customers Collection*
 /customers
-  /{customerId}
+  /1213
     firstName: 'First name'
     lastName: 'Last name'
     email: 'customer@email.com'
-    nOrder: 14
+    nOrders: 14 
 
+    /* Or nOrders could be moved to a sub-collection */
     /orders
       /completed
         nOrders: 14
 
-
 *Orders Collection*
 /orders
-  /{orderId}
+  /764
     customerId: 1213
     amount: '£15.32'
-    cFirstName: 'Last name'
-    cLastName: 'First name'
+    cFirstName: 'First name'
+    cLastName: 'Last name'
 
-    /delivered
-      /{deliverId}
+    /deliveryAttempts
+      /623
         customerId: 1213
+        completed: true
 ```
 
-If the customer updated their name then the orders will be. You will need a function (`onUpdate`) that is trigger every time there is an update to the customer table to update the order table's `Customer Name`. Similarly, if the customer is deleted (`onDelete`) then the orders that belong to the customer should be deleted too. Every time an order is added or deleted in the orders collection, it should update the `# Orders` for the customer by incrementing or decrementing the field.
+If the customer updated their first name in the customers' collection then the orders will be out of sync. You will need a function (`onUpdate`) that is triggered every time there is an update to the customer table to update the order table's `cFirstName`. Similarly, if the customer is deleted (`onDelete`) then the orders that belong to the customer should be deleted too. Every time an order is added or deleted in the orders collection, it should update the `nOrders` for the customer by incrementing or decrementing the field.
 
 Integrify allows you to create the functions in a simpler and easy-to-read way. You provided the `source` that the function must keep a watch on and the `targets` that need to be updated whenever the event specified occurs on the source collection.
 
@@ -78,9 +84,9 @@ integrify({ config: { functions, db } });
 module.exports.onCustomerUpdated = integrify({
   rule: 'REPLICATE_ATTRIBUTES',
   source: {
-    collection: 'customers', // <-- The document ID placeholder can be omitted 
+    collection: 'customers/{customerId}',
     // OR
-    collection: 'customers/{customerId}', // <-- The document ID placeholder can be supplied to improve readability
+    collection: 'customers', // <-- The document ID placeholder can be omitted
   },
   targets: [
     {
@@ -93,19 +99,20 @@ module.exports.onCustomerUpdated = integrify({
         // NOTE: If a field is missing after the update, the field will be deleted
       },
     },
+
+    // Can have multiple targets, for example if there was a sub-collection of delivery address for each customer
     {
-      collection: 'deliveryAddress',
+      collection: 'deliveryAttempts',
       foreignKey: 'customerId',
       attributeMapping: {
         firstName: 'cFirstName',
-        lastName: 'cLastName',
       },
       // Optional:
       isCollectionGroup: true, // Replicate into collection group, this will require an index, see more below
     },
   ],
 
-	// Optional:
+  // Optional:
   hooks: {
     pre: (change, context) => {
       // Code to execute before replicating attributes
@@ -136,9 +143,9 @@ integrify({ config: { functions, db } });
 module.exports.onCustomerDeleted = integrify({
   rule: 'DELETE_REFERENCES',
   source: {
-    collection: 'customers', // <-- The document ID placeholder can be omitted
+    collection: 'customers/{customerId}',
     // OR
-    collection: 'customers/{customerId}',  // <-- The document ID placeholder can be supplied to improve readability
+    collection: 'customers', // <-- The document ID placeholder can be omitted
   },
   targets: [
     {
@@ -149,9 +156,9 @@ module.exports.onCustomerDeleted = integrify({
       isCollectionGroup: true,  // Optional: Delete from collection group, see more below
     },
     {
-      collection: 'orders/$orderId/delivered', // Can reference source ID, this must match the source document ID, will throw and error if it doesn't exist
+      collection: 'orders/$orderId/deliveryAttempts', // Can reference source ID, this must match the source document ID, will throw and error if it doesn't exist
       // OR
-      collection: 'orders/$source.orderId/delivered', // Can reference a field value (requires $source. before the field name), will throw error if it doesn't exist
+      collection: 'orders/$source.orderId/deliveryAttempts', // Can reference a field value (requires $source. before the field name), will throw error if it doesn't exist
       foreignKey: 'customerId',
     },
   ],
@@ -187,9 +194,9 @@ integrify({ config: { functions, db } });
 module.exports.onMaintainCustomerOrderCount = integrify({
   rule: 'MAINTAIN_COUNT',
   source: {
-    collection: 'orders', // <-- The document ID placeholder can be omitted
+    collection: 'orders/{orderId}',
     // OR
-    collection: 'orders/{orderId}',  // <-- The document ID placeholder can be supplied to improve readability
+    collection: 'orders', // <-- The document ID placeholder can be omitted
   },
   target: {
     collection: 'customers/$source.customerId', // NOTE: The target,document should refer to the document that will be maintained
@@ -220,7 +227,6 @@ Alternately, rules can be specified in a file named `integrify.rules.js`.
 
 ```js
 // index.js
-
 const { integrify } = require('integrify');
 
 const functions = require('firebase-functions');
@@ -236,7 +242,6 @@ module.exports = integrify();
 
 ```js
 // integrify.rules.js
-
 module.exports = [
   {
     rule: 'REPLICATE_ATTRIBUTES',
