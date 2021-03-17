@@ -31,15 +31,18 @@ export function integrifyMaintainCount(
 ) {
   const functions = config.config.functions;
   const db = config.config.db;
-
-  const { hasPrimaryKey, primaryKey } = getPrimaryKey(rule.source.collection);
-  if (!hasPrimaryKey) {
-    rule.source.collection = `${rule.source.collection}/{${primaryKey}}`;
-  }
+  const logger = functions.logger;
 
   return functions.firestore
     .document(rule.source.collection)
     .onWrite(async (change, context) => {
+      const { hasPrimaryKey, primaryKey } = getPrimaryKey(
+        rule.source.collection
+      );
+      if (!hasPrimaryKey) {
+        rule.source.collection = `${rule.source.collection}/{${primaryKey}}`;
+      }
+
       // Determine if document has been added or deleted
       const documentWasAdded = change.after.exists && !change.before.exists;
       const documentWasDeleted = !change.after.exists && change.before.exists;
@@ -49,7 +52,7 @@ export function integrifyMaintainCount(
       } else if (documentWasDeleted) {
         await updateCount(context, change.before, Delta.Decrement);
       } else {
-        console.log(
+        logger.debug(
           `integrify: WARNING: Ignoring update trigger for MAINTAIN_COUNT on collection: [${rule.source.collection}]`
         );
       }
@@ -73,7 +76,7 @@ export function integrifyMaintainCount(
 
     // No-op if target does not exist
     if (!targetSnap.exists) {
-      console.log(
+      logger.debug(
         `integrify: WARNING: Target document does not exist in [${fieldSwap.targetCollection}]`
       );
       return;
@@ -82,7 +85,7 @@ export function integrifyMaintainCount(
     const update = {
       [rule.target.attribute]: admin.firestore.FieldValue.increment(delta),
     };
-    console.log(
+    logger.debug(
       `integrify: Applying ${toString(delta).toLowerCase()} to [${
         rule.target.collection
       }].[${rule.target.attribute}], update: `,

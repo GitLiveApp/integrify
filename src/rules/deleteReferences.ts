@@ -34,15 +34,24 @@ export function integrifyDeleteReferences(
   config: Config
 ): CloudFunction<QueryDocumentSnapshot> {
   const functions = config.config.functions;
-
-  const { hasPrimaryKey, primaryKey } = getPrimaryKey(rule.source.collection);
-  if (!hasPrimaryKey) {
-    rule.source.collection = `${rule.source.collection}/{${primaryKey}}`;
-  }
+  const logger = functions.logger;
 
   return functions.firestore
     .document(rule.source.collection)
     .onDelete(async (snap, context) => {
+      rule.targets.forEach(target =>
+        logger.debug(
+          `integrify: Delete all references to source [${rule.source.collection}] from [${target.collection}] linked by key [${target.foreignKey}]`
+        )
+      );
+
+      const { hasPrimaryKey, primaryKey } = getPrimaryKey(
+        rule.source.collection
+      );
+      if (!hasPrimaryKey) {
+        rule.source.collection = `${rule.source.collection}/{${primaryKey}}`;
+      }
+
       // Get the last {...} in the source collection
       const primaryKeyValue = context.params[primaryKey];
       if (!primaryKeyValue) {
@@ -51,13 +60,14 @@ export function integrifyDeleteReferences(
         );
       }
 
-      console.log(
+      logger.debug(
         `integrify: Detected delete in [${rule.source.collection}], id [${primaryKeyValue}]`
       );
 
       // Call "pre" hook if defined
       if (rule.hooks && rule.hooks.pre) {
         await rule.hooks.pre(snap, context);
+        // logger.debug(`integrify: Running pre-hook: ${rule.hooks.pre}`);
       }
 
       // Loop over each target
@@ -94,11 +104,11 @@ export function integrifyDeleteReferences(
         }
 
         if (target.deleteAll) {
-          console.log(
+          logger.debug(
             `integrify: Deleting all docs in sub-collection [${target.collection}]`
           );
         } else {
-          console.log(
+          logger.debug(
             `integrify: Deleting all docs in collection ${
               target.isCollectionGroup ? 'group ' : ''
             }[${target.collection}] where foreign key [${
@@ -112,7 +122,7 @@ export function integrifyDeleteReferences(
         const batchDelete = new WriteBatch();
         const querySnap = await whereable.get();
         for (const doc of querySnap.docs) {
-          console.log(
+          logger.debug(
             `integrify: Deleting [${target.collection}]${
               target.isCollectionGroup ? ' (group)' : ''
             }, id [${doc.id}]`
@@ -125,6 +135,7 @@ export function integrifyDeleteReferences(
       // Call "post" hook if defined
       if (rule.hooks && rule.hooks.post) {
         await rule.hooks.post(snap, context);
+        // logger.debug(`integrify: Running post-hook: ${rule.hooks.post}`);
       }
     });
 }

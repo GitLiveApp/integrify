@@ -34,23 +34,37 @@ export function integrifyReplicateAttributes(
   config: Config
 ): CloudFunction<Change<QueryDocumentSnapshot>> {
   const functions = config.config.functions;
-
-  const { hasPrimaryKey, primaryKey } = getPrimaryKey(rule.source.collection);
-  if (!hasPrimaryKey) {
-    rule.source.collection = `${rule.source.collection}/{${primaryKey}}`;
-  }
-
-  // Create map of master attributes to track for replication
-  const trackedMasterAttributes = {};
-  rule.targets.forEach(target => {
-    Object.keys(target.attributeMapping).forEach(masterAttribute => {
-      trackedMasterAttributes[masterAttribute] = true;
-    });
-  });
+  const logger = functions.logger;
 
   return functions.firestore
     .document(rule.source.collection)
     .onUpdate(async (change, context) => {
+      logger.debug(
+        `integrify: Replicate source collection [${rule.source.collection}]`
+      );
+      rule.targets.forEach(target => {
+        Object.keys(target.attributeMapping).forEach(sourceAttribute => {
+          logger.debug(
+            `integrify: Replicating [${rule.source.collection}].[${sourceAttribute}] => [${target.collection}].[${target.attributeMapping[sourceAttribute]}]`
+          );
+        });
+      });
+
+      const { hasPrimaryKey, primaryKey } = getPrimaryKey(
+        rule.source.collection
+      );
+      if (!hasPrimaryKey) {
+        rule.source.collection = `${rule.source.collection}/{${primaryKey}}`;
+      }
+
+      // Create map of master attributes to track for replication
+      const trackedMasterAttributes = {};
+      rule.targets.forEach(target => {
+        Object.keys(target.attributeMapping).forEach(masterAttribute => {
+          trackedMasterAttributes[masterAttribute] = true;
+        });
+      });
+
       // Get the last {...} in the source collection
       const primaryKeyValue = context.params[primaryKey];
       if (!primaryKeyValue) {
@@ -59,7 +73,7 @@ export function integrifyReplicateAttributes(
         );
       }
       const newValue = change.after.data();
-      console.log(
+      logger.debug(
         `integrify: Detected update in [${rule.source.collection}], id [${primaryKeyValue}], new value:`,
         newValue
       );
@@ -67,6 +81,7 @@ export function integrifyReplicateAttributes(
       // Call "pre" hook if defined
       if (rule.hooks && rule.hooks.pre) {
         await rule.hooks.pre(change, context);
+        // logger.debug(`integrify: Running pre-hook: ${rule.hooks.pre}`);
       }
 
       // Check if at least one of the attributes to be replicated was changed
@@ -77,7 +92,7 @@ export function integrifyReplicateAttributes(
         }
       });
       if (!relevantUpdate) {
-        console.log(
+        logger.debug(
           `integrify: No relevant updates found for replication:`,
           newValue
         );
@@ -97,7 +112,7 @@ export function integrifyReplicateAttributes(
             newValue[changedAttribute] || FieldValue.delete();
         });
 
-        console.log(
+        logger.debug(
           `integrify: On collection ${
             target.isCollectionGroup ? 'group ' : ''
           }[${target.collection}], applying update:`,
@@ -119,7 +134,7 @@ export function integrifyReplicateAttributes(
           .get();
 
         for (const doc of detailDocs.docs) {
-          console.log(
+          logger.debug(
             `integrify: On collection ${
               target.isCollectionGroup ? 'group ' : ''
             }[${target.collection}], id [${doc.id}], applying update:`,
@@ -133,7 +148,7 @@ export function integrifyReplicateAttributes(
       // Call "post" hook if defined
       if (rule.hooks && rule.hooks.post) {
         await rule.hooks.post(change, context);
-        console.log(`integrify: Running post-hook: ${rule.hooks.post}`);
+        logger.debug(`integrify: Running post-hook: ${rule.hooks.post}`);
       }
     });
 }
