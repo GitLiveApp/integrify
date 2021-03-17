@@ -25,14 +25,15 @@ export function integrifyMaintainCount(
 ) {
   const functions = config.config.functions;
   const db = config.config.db;
-
-  console.log(
-    `integrify: Creating function to maintain count of [${rule.source.collection}] with foreign key [${rule.source.foreignKey}] into [${rule.target.collection}].[${rule.target.attribute}]`
-  );
+  const logger = functions.logger;
 
   return functions.firestore
     .document(`${rule.source.collection}/{docId}`)
     .onWrite(async change => {
+      logger.debug(
+        `integrify: Maintain count of [${rule.source.collection}] with foreign key [${rule.source.foreignKey}] into [${rule.target.collection}].[${rule.target.attribute}]`
+      );
+
       // Determine if document has been added or deleted
       const documentWasAdded = change.after.exists && !change.before.exists;
       const documentWasDeleted = !change.after.exists && change.before.exists;
@@ -42,7 +43,7 @@ export function integrifyMaintainCount(
       } else if (documentWasDeleted) {
         await updateCount(change.before, Delta.Decrement);
       } else {
-        console.log(
+        logger.debug(
           `integrify: WARNING: Ignoring update trigger for MAINTAIN_COUNT on collection: [${rule.source.collection}]`
         );
       }
@@ -58,7 +59,7 @@ export function integrifyMaintainCount(
 
     // No-op if target does not exist
     if (!targetSnap.exists) {
-      console.log(
+      logger.debug(
         `integrify: WARNING: Target document does not exist in [${rule.target.collection}], id [${targetId}]`
       );
       return;
@@ -66,7 +67,7 @@ export function integrifyMaintainCount(
 
     const update = {};
     update[rule.target.attribute] = admin.firestore.FieldValue.increment(delta);
-    console.log(
+    logger.debug(
       `integrify: Applying ${toString(delta).toLowerCase()} to [${
         rule.target.collection
       }].[${rule.target.attribute}], id: [${targetId}], update: `,
