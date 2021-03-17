@@ -17,6 +17,8 @@ export type HookFunction<T> = (
   context: functions.EventContext
 ) => Promise<void> | void;
 
+export type FormatKeyFunction = (foreignKey: string) => string;
+
 export function isRule(arg: Rule | Config): arg is Rule {
   return (arg as Rule).rule !== undefined;
 }
@@ -56,7 +58,8 @@ export function getPrimaryKey(
 
 export function replaceReferencesWith(
   fields: FirebaseFirestore.DocumentData,
-  targetCollection: string
+  targetCollection: string,
+  formatKey?: FormatKeyFunction
 ): { hasFields: boolean; targetCollection: string } {
   const matches = regexMatches(targetCollection, Key.Foreign);
   matches.pop(); // The foreign key regex always return '' at the end
@@ -71,10 +74,10 @@ export function replaceReferencesWith(
         ? fields.source[cleanedIndex]
         : fields[cleanedIndex];
       if (field) {
-        // console.log(
-        //   `integrify: Detected dynamic reference, replacing [${match}] with [${field}]`
-        // );
-        targetCollection = targetCollection.replace(match, field);
+        targetCollection = targetCollection.replace(
+          match,
+          formatKey ? formatKey(field) : field
+        );
       } else {
         throw new Error(`integrify: Missing dynamic reference: [${match}]`);
       }

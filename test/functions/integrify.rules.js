@@ -187,10 +187,9 @@ module.exports = [
     name: 'maintainFavoritesCount',
     source: {
       collection: 'favorites',
-      foreignKey: 'articleId',
     },
     target: {
-      collection: 'articles',
+      collection: 'articles/$source.articleId',
       attribute: 'favoritesCount',
     },
   },
