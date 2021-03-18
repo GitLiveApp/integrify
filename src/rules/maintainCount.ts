@@ -1,23 +1,29 @@
 import * as admin from 'firebase-admin';
-import { Config, Rule } from '../common';
+import { EventContext } from 'firebase-functions';
+import {
+  Config,
+  FormatKeyFunction,
+  getPrimaryKey,
+  replaceReferencesWith,
+  Rule,
+} from '../common';
 
 export interface MaintainCountRule extends Rule {
   source: {
     collection: string;
-    foreignKey: string;
   };
   target: {
     collection: string;
     attribute: string;
+  };
+  hooks?: {
+    pre: FormatKeyFunction;
   };
 }
 
 export function isMaintainCountRule(arg: Rule): arg is MaintainCountRule {
   return arg.rule === 'MAINTAIN_COUNT';
 }
-
-// TODO: Provide MAINTAIN_SHARDED_COUNT implementing distributed counters.
-//       See: https://firebase.google.com/docs/firestore/solutions/counters
 
 export function integrifyMaintainCount(
   rule: MaintainCountRule,
@@ -28,20 +34,23 @@ export function integrifyMaintainCount(
   const logger = functions.logger;
 
   return functions.firestore
-    .document(`${rule.source.collection}/{docId}`)
-    .onWrite(async change => {
-      logger.debug(
-        `integrify: Maintain count of [${rule.source.collection}] with foreign key [${rule.source.foreignKey}] into [${rule.target.collection}].[${rule.target.attribute}]`
+    .document(rule.source.collection)
+    .onWrite(async (change, context) => {
+      const { hasPrimaryKey, primaryKey } = getPrimaryKey(
+        rule.source.collection
       );
+      if (!hasPrimaryKey) {
+        rule.source.collection = `${rule.source.collection}/{${primaryKey}}`;
+      }
 
       // Determine if document has been added or deleted
       const documentWasAdded = change.after.exists && !change.before.exists;
       const documentWasDeleted = !change.after.exists && change.before.exists;
 
       if (documentWasAdded) {
-        await updateCount(change.after, Delta.Increment);
+        await updateCount(context, change.after, Delta.Increment);
       } else if (documentWasDeleted) {
-        await updateCount(change.before, Delta.Decrement);
+        await updateCount(context, change.before, Delta.Decrement);
       } else {
         logger.debug(
           `integrify: WARNING: Ignoring update trigger for MAINTAIN_COUNT on collection: [${rule.source.collection}]`
@@ -50,27 +59,37 @@ export function integrifyMaintainCount(
     });
 
   async function updateCount(
+    context: EventContext,
     snap: FirebaseFirestore.DocumentSnapshot,
     delta: Delta
   ) {
-    const targetId = snap.get(rule.source.foreignKey);
-    const targetRef = db.collection(rule.target.collection).doc(targetId);
+    // Replace the context.params and snapshot fields in the target collection
+    const fieldSwap = replaceReferencesWith(
+      { source: snap.data() || {}, ...context.params },
+      rule.target.collection,
+      rule?.hooks?.pre
+    );
+    const targetCollection = fieldSwap.targetCollection;
+
+    // For maintain it must reference a doc
+    const targetRef = db.doc(targetCollection);
     const targetSnap = await targetRef.get();
 
     // No-op if target does not exist
     if (!targetSnap.exists) {
       logger.debug(
-        `integrify: WARNING: Target document does not exist in [${rule.target.collection}], id [${targetId}]`
+        `integrify: WARNING: Target document does not exist in [${targetCollection}]`
       );
       return;
     }
 
-    const update = {};
-    update[rule.target.attribute] = admin.firestore.FieldValue.increment(delta);
+    const update = {
+      [rule.target.attribute]: admin.firestore.FieldValue.increment(delta),
+    };
     logger.debug(
       `integrify: Applying ${toString(delta).toLowerCase()} to [${
         rule.target.collection
-      }].[${rule.target.attribute}], id: [${targetId}], update: `,
+      }].[${rule.target.attribute}], update: `,
       update
     );
     await targetRef.update(update);
