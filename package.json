@@ -1,5 +1,5 @@
 {
-  "name": "integrify",
+  "name": "@gitliveapp/integrify",
   "version": "5.0.0",
   "description": "Enforce referential integrity in Firestore using Cloud Functions",
   "keywords": [
@@ -29,22 +29,21 @@
     "format": "prettier --check --write {src,test}/*.{ts,js} {src,test}/**/*.{ts,js}",
     "lint": "npm run format && tslint --project ./tsconfig.json",
     "build": "npm run clean && npm run lint && tsc",
-    "test": "npm run build && ./test/test.sh",
+    "test": "jest --runInBand --config jest.config.js --silent --coverage --reporters=\"default\"",
     "prepublishOnly": "npm run build",
     "release": "git push --dry-run && npm whoami && standard-version && git push --follow-tags origin master && npm publish"
   },
   "devDependencies": {
-    "@commitlint/cli": "^8.3.5",
-    "@commitlint/config-conventional": "^8.3.4",
-    "ava": "^3.1.0",
+    "@types/jest": "^26.0.21",
     "firebase-admin": "^9.5.0",
     "firebase-functions": "^3.13.2",
     "firebase-functions-test": "^0.2.3",
-    "husky": "^4.2.1",
-    "nyc": "^15.0.0",
+    "jest": "^26.6.3",
     "object-sizeof": "^1.6.0",
     "prettier": "^1.19.1",
     "standard-version": "^7.1.0",
+    "ts-jest": "^26.5.4",
+    "ts-node": "^9.1.1",
     "tslint": "^6.0.0",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.7.5"
@@ -58,65 +57,6 @@
   },
   "dependencies": {
     "caller-path": "^3.0.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint",
-      "commit-msg": "commitlint --verbose --env HUSKY_GIT_PARAMS"
-    }
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ],
-    "rules": {
-      "scope-case": [
-        1,
-        "always",
-        "lower-case"
-      ],
-      "subject-case": [
-        2,
-        "always",
-        "sentence-case"
-      ]
-    }
-  },
-  "standard-version": {
-    "types": [
-      {
-        "type": "feat",
-        "section": "Features"
-      },
-      {
-        "type": "fix",
-        "section": "Bug Fixes"
-      },
-      {
-        "type": "chore",
-        "section": "Chores"
-      },
-      {
-        "type": "docs",
-        "section": "Docs"
-      },
-      {
-        "type": "style",
-        "section": "Style"
-      },
-      {
-        "type": "refactor",
-        "section": "Refactor"
-      },
-      {
-        "type": "perf",
-        "section": "Performance"
-      },
-      {
-        "type": "test",
-        "section": "Tests"
-      }
-    ]
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
