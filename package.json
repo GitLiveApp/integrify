@@ -60,5 +60,10 @@
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
+  },
+  "jest-junit": {
+    "suiteNameTemplate": "{filepath}",
+    "classNameTemplate": "{classname}",
+    "titleTemplate": "{title}"
   }
 }

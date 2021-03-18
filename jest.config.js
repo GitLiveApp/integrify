@@ -16,4 +16,10 @@ module.exports = {
     'src/**/*.ts',
     '!src/**/*.d.ts'
   ],
+  reporters: [
+    'default',
+    ['jest-junit', {
+      'suiteName': 'jest tests'
+    }]
+  ]
 };

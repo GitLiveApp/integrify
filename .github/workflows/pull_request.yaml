@@ -29,11 +29,10 @@ jobs:
       - name: Run integration tests against Firebase emulator
         run: |
           npm install -g firebase-tools
-          firebase emulators:exec --only firestore,database,pubsub --project teamhub-emulator 'npm run test:ci --prefix functions'
+          firebase emulators:exec --only firestore --project integrify-emulator 'npm run test'
       - uses: IgnusG/jest-report-action@v2.3.3
         if: always()
         with:
           access-token: ${{ secrets.GITHUB_TOKEN }}
           junit-file: 'junit.xml'
-          working-directory: 'functions/'
           run-name: 'Jest Test Report'
