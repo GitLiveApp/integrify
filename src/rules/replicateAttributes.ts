@@ -81,7 +81,6 @@ export function integrifyReplicateAttributes(
       // Call "pre" hook if defined
       if (rule.hooks && rule.hooks.pre) {
         await rule.hooks.pre(change, context);
-        // logger.debug(`integrify: Running pre-hook: ${rule.hooks.pre}`);
       }
 
       // Check if at least one of the attributes to be replicated was changed

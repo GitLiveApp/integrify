@@ -69,15 +69,16 @@ export function integrifyMaintainCount(
       rule.target.collection,
       rule?.hooks?.pre
     );
+    const targetCollection = fieldSwap.targetCollection;
 
     // For maintain it must reference a doc
-    const targetRef = db.doc(fieldSwap.targetCollection);
+    const targetRef = db.doc(targetCollection);
     const targetSnap = await targetRef.get();
 
     // No-op if target does not exist
     if (!targetSnap.exists) {
       logger.debug(
-        `integrify: WARNING: Target document does not exist in [${fieldSwap.targetCollection}]`
+        `integrify: WARNING: Target document does not exist in [${targetCollection}]`
       );
       return;
     }
