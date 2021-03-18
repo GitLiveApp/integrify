@@ -67,7 +67,6 @@ export function integrifyDeleteReferences(
       // Call "pre" hook if defined
       if (rule.hooks && rule.hooks.pre) {
         await rule.hooks.pre(snap, context);
-        // logger.debug(`integrify: Running pre-hook: ${rule.hooks.pre}`);
       }
 
       // Loop over each target
@@ -93,25 +92,25 @@ export function integrifyDeleteReferences(
           { source: snap.data() || {}, ...context.params },
           target.collection
         );
-        target.collection = fieldSwap.targetCollection;
+        const targetCollection = fieldSwap.targetCollection;
 
         // Delete all docs in this target corresponding to deleted master doc
         let whereable: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = null;
         if (target.isCollectionGroup) {
-          whereable = db.collectionGroup(target.collection);
+          whereable = db.collectionGroup(targetCollection);
         } else {
-          whereable = db.collection(target.collection);
+          whereable = db.collection(targetCollection);
         }
 
         if (target.deleteAll) {
           logger.debug(
-            `integrify: Deleting all docs in sub-collection [${target.collection}]`
+            `integrify: Deleting all docs in sub-collection [${targetCollection}]`
           );
         } else {
           logger.debug(
             `integrify: Deleting all docs in collection ${
               target.isCollectionGroup ? 'group ' : ''
-            }[${target.collection}] where foreign key [${
+            }[${targetCollection}] where foreign key [${
               target.foreignKey
             }] matches [${primaryKeyValue}]`
           );
@@ -123,7 +122,7 @@ export function integrifyDeleteReferences(
         const querySnap = await whereable.get();
         for (const doc of querySnap.docs) {
           logger.debug(
-            `integrify: Deleting [${target.collection}]${
+            `integrify: Deleting [${targetCollection}]${
               target.isCollectionGroup ? ' (group)' : ''
             }, id [${doc.id}]`
           );
@@ -135,7 +134,6 @@ export function integrifyDeleteReferences(
       // Call "post" hook if defined
       if (rule.hooks && rule.hooks.post) {
         await rule.hooks.post(snap, context);
-        // logger.debug(`integrify: Running post-hook: ${rule.hooks.post}`);
       }
     });
 }
