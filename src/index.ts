@@ -78,7 +78,11 @@ function readRulesFromFile() {
 }
 
 const currentConfig: Config = {
-  config: { db: null, functions: null },
+  config: {
+    db: null,
+    functions: null,
+    verbose: false,
+  },
 };
 
 function setCurrentConfig(aConfig: Config) {

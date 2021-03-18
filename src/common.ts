@@ -9,6 +9,7 @@ export interface Config {
   config: {
     db: FirebaseFirestore.Firestore;
     functions: typeof import('firebase-functions');
+    verbose: boolean;
   };
 }
 
