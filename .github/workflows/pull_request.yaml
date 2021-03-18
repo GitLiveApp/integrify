@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Install dependencies
-        run: npm install --prefix functions
+        run: npm install
       - name: Install Java 14
         uses: actions/setup-java@v1
         with:
