@@ -21,5 +21,8 @@ module.exports = {
     ['jest-junit', {
       'suiteName': 'jest tests'
     }]
-  ]
+  ],
+  setupFiles: [
+    '<rootDir>/__test__/test.setup.ts',
+  ],
 };

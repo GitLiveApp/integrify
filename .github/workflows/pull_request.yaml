@@ -29,7 +29,7 @@ jobs:
       - name: Run integration tests against Firebase emulator
         run: |
           npm install -g firebase-tools
-          firebase emulators:exec --only firestore --project integrify-emulator 'npm run test'
+          firebase emulators:exec --only firestore --project integrify-emulator 'npm run test:ci'
       - uses: IgnusG/jest-report-action@v2.3.3
         if: always()
         with:
