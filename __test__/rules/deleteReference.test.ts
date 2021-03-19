@@ -1,6 +1,6 @@
 import { testSdk, cleanFirestore } from '../util';
 import { firestore } from 'firebase-admin';
-import * as integrifyFunctions from '../files/index';
+import * as integrifyFunctions from '../files/deleteFunctions';
 
 describe('deleteReference', () => {
 
