@@ -26,7 +26,7 @@ jobs:
           java-version: '14'
           java-package: jdk
           architecture: x64
-      - name: Run integration tests against Firebase emulator
+      - name: Run tests against Firebase emulator
         run: |
           npm install -g firebase-tools
           firebase emulators:exec --only firestore --project integrify-emulator 'npm run test:ci'
