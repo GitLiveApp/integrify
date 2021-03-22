@@ -147,7 +147,6 @@ export function integrifyReplicateAttributes(
       // Call "post" hook if defined
       if (rule.hooks && rule.hooks.post) {
         await rule.hooks.post(change, context);
-        logger.debug(`integrify: Running post-hook: ${rule.hooks.post}`);
       }
     });
 }
