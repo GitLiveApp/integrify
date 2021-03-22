@@ -1,4 +1,4 @@
-import * as callerPath from 'caller-path';
+import callerPath from 'caller-path';
 import { existsSync } from 'fs';
 import { dirname, sep } from 'path';
 import { Config, isConfig, isRule, Rule } from './common';
@@ -78,7 +78,11 @@ function readRulesFromFile() {
 }
 
 const currentConfig: Config = {
-  config: { db: null, functions: null },
+  config: {
+    db: null,
+    functions: null,
+    verbose: false,
+  },
 };
 
 function setCurrentConfig(aConfig: Config) {
