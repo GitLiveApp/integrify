@@ -22,7 +22,7 @@ export const maintainFavoritesCountWithPreHook = integrify({
   },
   target: {
     collection: 'articles/$source.articleId',
-    attribute: 'favoritesCount',
+    attribute: 'formattedFavoritesCount',
   },
   hooks: {
     pre: key => `updated_${key}`,
@@ -33,13 +33,34 @@ export const maintainFavoritesCountWithDeepPreHook = integrify({
   rule: 'MAINTAIN_COUNT',
   source: {
     collection: 'favorites',
-    // foreignKey: 'articleId',
   },
   target: {
     collection: 'articles/$source.articleId/private/counts',
-    attribute: 'favoritesCount',
+    attribute: 'deepFavoritesCount',
   },
   hooks: {
     pre: key => `updated_${key}`,
+  },
+});
+
+export const maintainUpdateFavorite = integrify({
+  rule: 'MAINTAIN_COUNT',
+  source: {
+    collection: 'favorites',
+  },
+  target: {
+    collection: 'articles/$source.articleId',
+    attribute: 'favoritesCount',
+  },
+});
+
+export const maintainUpdateFavoriteWithNoTarget = integrify({
+  rule: 'MAINTAIN_COUNT',
+  source: {
+    collection: 'favorites',
+  },
+  target: {
+    collection: 'articles/$source.articleId',
+    attribute: 'favoritesCount',
   },
 });
