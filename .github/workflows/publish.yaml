@@ -7,14 +7,14 @@ on:
 jobs:
   publish:
     name: Publish to GitHub packages
-    needs: build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout source
         uses: actions/checkout@v2.4.0
       
       - name: Install Node.js 14
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v2.4.1
         with:
           node-version: 14
           registry-url: https://npm.pkg.github.com/
