@@ -1,0 +1,30 @@
+name: Publish to GitHub Packages
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  publish:
+    name: Publish to GitHub packages
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2.4.0
+      
+      - name: Install Node.js 14
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          registry-url: https://npm.pkg.github.com/
+          scope: "@GitLiveApp"
+
+      - run: echo "registry=https://npm.pkg.github.com/@GitLiveApp" >> .npmrc
+
+      - name: Publish
+        run: |
+          npm ci
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
