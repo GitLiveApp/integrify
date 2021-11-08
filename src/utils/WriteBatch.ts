@@ -8,7 +8,7 @@ import {
   FieldPath,
   WriteResult,
 } from '@google-cloud/firestore';
-import * as sizeof from 'object-sizeof';
+import sizeof from 'object-sizeof';
 
 const BYTES_LIMIT = 10485760;
 export class WriteBatch {
@@ -46,7 +46,7 @@ export class WriteBatch {
   // // we do return the instance of the WriteBatch in order to allow the chaining of calls, example: batch.set(....).update(..)
   // create(documentRef: DocumentReference, data: DocumentData): this {
   //   this.batch.create(documentRef, data);
-  //   this.consumedBytes += require('object-sizeof')(data);
+  //   this.consumedBytes += sizeof(data);
   //   return this;
   // }
 
@@ -56,7 +56,7 @@ export class WriteBatch {
   //   options?: SetOptions
   // ): this {
   //   this.batch.set(documentRef, data, options);
-  //   this.consumedBytes += require('object-sizeof')(data);
+  //   this.consumedBytes += sizeof(data);
   //   return this;
   // }
 
@@ -67,8 +67,8 @@ export class WriteBatch {
   ): this {
     this.batch.update(documentRef, dataOrField as any, ...preconditionOrValues);
     this.consumedBytes +=
-      require('object-sizeof')(dataOrField) +
-      require('object-sizeof')(preconditionOrValues);
+      sizeof(dataOrField) +
+      sizeof(preconditionOrValues);
     return this;
   }
 

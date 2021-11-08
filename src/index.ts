@@ -1,5 +1,5 @@
 import callerPath from 'caller-path';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { dirname, sep } from 'path';
 import { Config, isConfig, isRule, Rule } from './common';
 import {
@@ -74,7 +74,7 @@ function readRulesFromFile() {
   if (!existsSync(rulesFile)) {
     throw new Error(`integrify: Rules file not found: [${rulesFile}]`);
   }
-  return require(rulesFile);
+  return JSON.parse(readFileSync(rulesFile, { encoding: 'utf8' }));
 }
 
 const currentConfig: Config = {
