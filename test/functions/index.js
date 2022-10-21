@@ -309,7 +309,7 @@ module.exports.maintainFavoritesCountWithPreHook = integrify({
     attribute: 'favoritesCount',
   },
   hooks: {
-    pre: key => `updated_${key}`,
+    pre: (key) => `updated_${key}`,
   },
 });
 
@@ -324,6 +324,6 @@ module.exports.maintainFavoritesCountWithDeepPreHook = integrify({
     attribute: 'favoritesCount',
   },
   hooks: {
-    pre: key => `updated_${key}`,
+    pre: (key) => `updated_${key}`,
   },
 });

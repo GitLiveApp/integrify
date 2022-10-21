@@ -22,13 +22,11 @@ const credentials = {
 };
 
 function makeid() {
-  return Math.random()
-    .toString(36)
-    .substr(2);
+  return Math.random().toString(36).substr(2);
 }
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 module.exports = { credentials, makeid, sleep };

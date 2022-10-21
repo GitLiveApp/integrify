@@ -27,7 +27,7 @@ export function integrify(ruleOrConfig?: Rule | Config) {
   if (!ruleOrConfig) {
     const rules = readRulesFromFile();
     const functions = {};
-    rules.forEach(thisRule => {
+    rules.forEach((thisRule) => {
       if (
         isReplicateAttributesRule(thisRule) ||
         isDeleteReferencesRule(thisRule) ||

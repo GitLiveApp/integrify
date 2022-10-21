@@ -19,10 +19,7 @@ const db = admin.firestore();
 async function clearFirestore() {
   const collections = ['detail1', 'detail2', 'detail3', 'somecoll'];
   for (const collection of collections) {
-    const { docs } = await admin
-      .firestore()
-      .collectionGroup(collection)
-      .get();
+    const { docs } = await admin.firestore().collectionGroup(collection).get();
     for (const doc of docs) {
       doc.ref.delete();
     }
@@ -43,53 +40,53 @@ const testsuites = [
   ['rules-in-file', require('./functions/rules-from-file.index')],
 ];
 
-testsuites.forEach(testsuite => {
+testsuites.forEach((testsuite) => {
   const name = testsuite[0];
   const sut = testsuite[1];
 
-  test(`[${name}] test basic characteristics`, async t => {
+  test(`[${name}] test basic characteristics`, async (t) => {
     t.true(sut.replicateMasterToDetail.name === 'cloudFunction');
     t.truthy(sut.replicateMasterToDetail.run);
   });
-  test(`[${name}] test get primary key`, async t =>
+  test(`[${name}] test get primary key`, async (t) =>
     testPrimaryKey(sut, t, name));
-  test(`[${name}] test target collection parameter swap`, async t =>
+  test(`[${name}] test target collection parameter swap`, async (t) =>
     testTargetVariableSwap(sut, t, name));
 
   // Standard functionality
-  test(`[${name}] test replicate attributes`, async t =>
+  test(`[${name}] test replicate attributes`, async (t) =>
     testReplicateAttributes(sut, t, name));
-  test(`[${name}] test delete references`, async t =>
+  test(`[${name}] test delete references`, async (t) =>
     testDeleteReferences(sut, t, name));
-  test(`[${name}] test maintain count`, async t => testMaintainCount(sut, t));
+  test(`[${name}] test maintain count`, async (t) => testMaintainCount(sut, t));
 
   // Added by GitLive
-  test(`[${name}] test replicate attributes delete when field is not there`, async t =>
+  test(`[${name}] test replicate attributes delete when field is not there`, async (t) =>
     testReplicateAttributesDeleteEmpty(sut, t, name));
-  test(`[${name}] test replicate attributes with missing primary key in source reference`, async t =>
+  test(`[${name}] test replicate attributes with missing primary key in source reference`, async (t) =>
     testReplicateMissingSourceCollectionKey(sut, t, name));
 
-  test(`[${name}] test delete with masterId in target reference`, async t =>
+  test(`[${name}] test delete with masterId in target reference`, async (t) =>
     testDeleteParamReferences(sut, t, name));
-  test(`[${name}] test delete with snapshot fields in target reference`, async t =>
+  test(`[${name}] test delete with snapshot fields in target reference`, async (t) =>
     testDeleteSnapshotFieldReferences(sut, t, name));
-  test(`[${name}] test delete with missing primary key in source reference`, async t =>
+  test(`[${name}] test delete with missing primary key in source reference`, async (t) =>
     testDeleteMissingSourceCollectionKey(sut, t, name));
-  test(`[${name}] test delete with missing snapshot fields in target reference`, async t =>
+  test(`[${name}] test delete with missing snapshot fields in target reference`, async (t) =>
     testDeleteMissingFieldsReferences(sut, t, name));
 
-  test(`[${name}] test delete all sub-collections in target reference`, async t =>
+  test(`[${name}] test delete all sub-collections in target reference`, async (t) =>
     testDeleteAllSubCollections(sut, t, name));
-  test(`[${name}] test delete missing arguments error`, async t =>
+  test(`[${name}] test delete missing arguments error`, async (t) =>
     testDeleteMissingArgumentsError(sut, t, name));
 
-  test(`[${name}] test delete pre and post hook`, async t =>
+  test(`[${name}] test delete pre and post hook`, async (t) =>
     testDeletePrePostHooks(sut, t, name));
 
-  test(`[${name}] test maintain key pre-hook`, async t =>
+  test(`[${name}] test maintain key pre-hook`, async (t) =>
     testMaintainCountPreHook(sut, t, name));
 
-  test(`[${name}] test maintain key deep pre-hook`, async t =>
+  test(`[${name}] test maintain key deep pre-hook`, async (t) =>
     testMaintainCountDeepPreHook(sut, t, name));
 });
 
@@ -839,10 +836,7 @@ async function testDeletePrePostHooks(sut, t, name) {
 async function testMaintainCount(sut, t) {
   // Create an article to be favorited
   const articleId = makeid();
-  await db
-    .collection('articles')
-    .doc(articleId)
-    .set({ favoritesCount: 0 });
+  await db.collection('articles').doc(articleId).set({ favoritesCount: 0 });
 
   // Favorite the article a few times
   const NUM_TIMES_TO_FAVORITE = 5;
@@ -880,10 +874,7 @@ async function testMaintainCount(sut, t) {
 
   // Delete article and ensure favoritesCount is not updated on decrement or
   // increment
-  await db
-    .collection('articles')
-    .doc(articleId)
-    .delete();
+  await db.collection('articles').doc(articleId).delete();
   await wrappedUpdater(fft.makeChange(snap, emptySnap));
   await wrappedUpdater(fft.makeChange(emptySnap, snap));
   await assertQuerySizeEventually(
@@ -945,10 +936,7 @@ async function testMaintainCountPreHook(sut, t, name) {
 
   // Delete article and ensure favoritesCount is not updated on decrement or
   // increment
-  await db
-    .collection('articles')
-    .doc(updatedArticleId)
-    .delete();
+  await db.collection('articles').doc(updatedArticleId).delete();
   await wrappedUpdater(fft.makeChange(snap, emptySnap));
   await wrappedUpdater(fft.makeChange(emptySnap, snap));
   await assertQuerySizeEventually(
@@ -1038,7 +1026,7 @@ async function testMaintainCountDeepPreHook(sut, t, name) {
   t.pass();
 }
 
-test('test error conditions', async t => {
+test('test error conditions', async (t) => {
   t.throws(() => integrify({}), {
     message: /Input must be rule or config/i,
   });

@@ -45,9 +45,10 @@ function removeVariableToken(text: string, source: boolean): string {
   return source ? text.replace('$source.', '') : text.replace('$', '');
 }
 
-export function getPrimaryKey(
-  ref: string
-): { hasPrimaryKey: boolean; primaryKey: string } {
+export function getPrimaryKey(ref: string): {
+  hasPrimaryKey: boolean;
+  primaryKey: string;
+} {
   const keys = regexMatches(ref, Key.Primary);
   if (keys.length > 0) {
     const pk = keys.pop(); // Pop the last item in the matched array
@@ -67,7 +68,7 @@ export function replaceReferencesWith(
   let hasFields = false;
   if (matches.length > 0 && fields) {
     hasFields = true;
-    matches.forEach(match => {
+    matches.forEach((match) => {
       const isSourceField = containsSource(match);
       const cleanedIndex = removeVariableToken(match, isSourceField);
 

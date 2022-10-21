@@ -66,9 +66,7 @@ export class WriteBatch {
     ...preconditionOrValues: any[]
   ): this {
     this.batch.update(documentRef, dataOrField as any, ...preconditionOrValues);
-    this.consumedBytes +=
-      sizeof(dataOrField) +
-      sizeof(preconditionOrValues);
+    this.consumedBytes += sizeof(dataOrField) + sizeof(preconditionOrValues);
     return this;
   }
 
@@ -79,6 +77,6 @@ export class WriteBatch {
 
   commit = async () =>
     ([] as WriteResult[]).concat(
-      ...(await Promise.all(this.batches.map(b => b.commit())))
+      ...(await Promise.all(this.batches.map((b) => b.commit())))
     );
 }
