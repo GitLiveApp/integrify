@@ -42,8 +42,8 @@ export function integrifyReplicateAttributes(
       logger.debug(
         `integrify: Replicate source collection [${rule.source.collection}]`
       );
-      rule.targets.forEach(target => {
-        Object.keys(target.attributeMapping).forEach(sourceAttribute => {
+      rule.targets.forEach((target) => {
+        Object.keys(target.attributeMapping).forEach((sourceAttribute) => {
           logger.debug(
             `integrify: Replicating [${rule.source.collection}].[${sourceAttribute}] => [${target.collection}].[${target.attributeMapping[sourceAttribute]}]`
           );
@@ -59,8 +59,8 @@ export function integrifyReplicateAttributes(
 
       // Create map of master attributes to track for replication
       const trackedMasterAttributes = {};
-      rule.targets.forEach(target => {
-        Object.keys(target.attributeMapping).forEach(masterAttribute => {
+      rule.targets.forEach((target) => {
+        Object.keys(target.attributeMapping).forEach((masterAttribute) => {
           trackedMasterAttributes[masterAttribute] = true;
         });
       });
@@ -85,7 +85,7 @@ export function integrifyReplicateAttributes(
 
       // Check if at least one of the attributes to be replicated was changed
       let relevantUpdate = false;
-      Object.keys(newValue).forEach(changedAttribute => {
+      Object.keys(newValue).forEach((changedAttribute) => {
         if (trackedMasterAttributes[changedAttribute]) {
           relevantUpdate = true;
         }
@@ -106,7 +106,7 @@ export function integrifyReplicateAttributes(
 
         // Create "update" mapping each changed attribute from source => target,
         // if delete is set delete field
-        Object.keys(target.attributeMapping).forEach(changedAttribute => {
+        Object.keys(target.attributeMapping).forEach((changedAttribute) => {
           update[target.attributeMapping[changedAttribute]] =
             newValue[changedAttribute] || FieldValue.delete();
         });
@@ -147,7 +147,6 @@ export function integrifyReplicateAttributes(
       // Call "post" hook if defined
       if (rule.hooks && rule.hooks.post) {
         await rule.hooks.post(change, context);
-        logger.debug(`integrify: Running post-hook: ${rule.hooks.post}`);
       }
     });
 }

@@ -39,7 +39,7 @@ export function integrifyDeleteReferences(
   return functions.firestore
     .document(rule.source.collection)
     .onDelete(async (snap, context) => {
-      rule.targets.forEach(target =>
+      rule.targets.forEach((target) =>
         logger.debug(
           `integrify: Delete all references to source [${rule.source.collection}] from [${target.collection}] linked by key [${target.foreignKey}]`
         )
@@ -95,7 +95,8 @@ export function integrifyDeleteReferences(
         const targetCollection = fieldSwap.targetCollection;
 
         // Delete all docs in this target corresponding to deleted master doc
-        let whereable: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = null;
+        let whereable: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> =
+          null;
         if (target.isCollectionGroup) {
           whereable = db.collectionGroup(targetCollection);
         } else {
