@@ -2,10 +2,14 @@
   "compilerOptions": {
     "outDir": "lib",
     "declaration": true,
-    "target": "es5",
-    "lib": ["es5", "es2015.promise"],
+    "target": "es6",
+    "module": "esnext",
+    "lib": ["es2015"],
+    "moduleResolution": "node",
     "inlineSourceMap": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "lib", "**/*.test.ts"]
 }
