@@ -60,9 +60,9 @@ export class WriteBatch {
   //   return this;
   // }
 
-  update(
+  update<T>(
     documentRef: DocumentReference,
-    dataOrField: UpdateData | string | FieldPath,
+    dataOrField: UpdateData<T> | string | FieldPath,
     ...preconditionOrValues: any[]
   ): this {
     this.batch.update(documentRef, dataOrField as any, ...preconditionOrValues);
